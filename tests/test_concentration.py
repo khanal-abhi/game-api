@@ -20,3 +20,6 @@ class ConcentrationTest(TestCase):
 
     def test_number_of_cols_is_5(self):
         TestCase.assertEqual(self, 5, self.game.cols)
+
+    def test_start_game_should_have_4_rows_and_5_colums_in_pairs(self):
+
