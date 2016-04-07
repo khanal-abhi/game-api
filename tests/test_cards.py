@@ -5,10 +5,10 @@ class TestCards(TestCase):
     """Test the card class."""
 
     def setUp(self):
-        self.card = Card()
+        self.card = Card(1)
 
     def tearDown(self):
         self.card = None
 
     def test_has_a_value(self):
-        TestCase.assertTrue(self.card.value is not None)
+        TestCase.assertTrue(self, self.card.value is not None)

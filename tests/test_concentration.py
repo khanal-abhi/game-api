@@ -22,4 +22,5 @@ class ConcentrationTest(TestCase):
         TestCase.assertEqual(self, 5, self.game.cols)
 
     def test_start_game_should_have_4_rows_and_5_colums_in_pairs(self):
+        pass
 
