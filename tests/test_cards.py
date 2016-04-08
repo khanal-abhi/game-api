@@ -19,3 +19,7 @@ class TestCards(TestCase):
 
     def test_has_matched_as_false_by_default(self):
         TestCase.assertFalse(self, self.card.matched)
+
+    def test_can_trigger_matched_by_calling_the_method_matched(self):
+        self.card.is_matched()
+        TestCase.assertTrue(self, self.card.matched)
