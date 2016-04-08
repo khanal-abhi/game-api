@@ -1,6 +1,7 @@
 from unittest import TestCase
 from game_mechanics.cards import Card
 
+
 class TestCards(TestCase):
     """Test the card class."""
 
@@ -11,4 +12,10 @@ class TestCards(TestCase):
         self.card = None
 
     def test_has_a_value(self):
-        TestCase.assertTrue(self, self.card.value is not None)
+        TestCase.assertEqual(self, 1, self.card.value)
+
+    def test_has_a_matched_boolean(self):
+        TestCase.assertTrue(self, self.card.matched is not None)
+
+    def test_has_matched_as_false_by_default(self):
+        TestCase.assertFalse(self, self.card.matched)
