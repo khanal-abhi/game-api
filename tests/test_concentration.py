@@ -9,7 +9,7 @@ class ConcentrationTest(TestCase):
         self.game = Concentration()
 
     def test_concentrate_should_instantiate_with_20_cards(self):
-        TestCase.assertEqual(self, 20, self.game.cards)
+        TestCase.assertEqual(self, 20, len(self.game.cards))
 
     def test_gameover_false_by_default(self):
         TestCase.assertFalse(self, self.game.gameover,
