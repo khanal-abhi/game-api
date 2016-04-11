@@ -2,10 +2,10 @@
 entities used by the Game. Because these classes are also regular Python
 classes they can include methods (such as 'to_form' and 'new_game')."""
 
-import random
 from datetime import date
-from protorpc import messages
+
 from google.appengine.ext import ndb
+from protorpc import messages
 
 
 class User(ndb.Model):
@@ -16,21 +16,15 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    target = ndb.IntegerProperty(required=True)
-    attempts_allowed = ndb.IntegerProperty(required=True)
-    attempts_remaining = ndb.IntegerProperty(required=True, default=5)
+    attempts = ndb.IntegerProperty(required=True, default=0)
     game_over = ndb.BooleanProperty(required=True, default=False)
+    last_played = ndb.DateTimeProperty(auto_now_add=True)
     user = ndb.KeyProperty(required=True, kind='User')
 
     @classmethod
-    def new_game(cls, user, min, max, attempts):
+    def new_game(cls, user):
         """Creates and returns a new game"""
-        if max < min:
-            raise ValueError('Maximum must be greater than minimum')
         game = Game(user=user,
-                    target=random.choice(range(1, max + 1)),
-                    attempts_allowed=attempts,
-                    attempts_remaining=attempts,
                     game_over=False)
         game.put()
         return game
@@ -40,7 +34,7 @@ class Game(ndb.Model):
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
         form.user_name = self.user.get().name
-        form.attempts_remaining = self.attempts_remaining
+        form.attempts = self.attempts
         form.game_over = self.game_over
         form.message = message
         return form
@@ -52,26 +46,33 @@ class Game(ndb.Model):
         self.put()
         # Add the game to the score 'board'
         score = Score(user=self.user, date=date.today(), won=won,
-                      guesses=self.attempts_allowed - self.attempts_remaining)
+                      attempts=self.attempts)
         score.put()
 
 
 class Score(ndb.Model):
     """Score object"""
     user = ndb.KeyProperty(required=True, kind='User')
-    date = ndb.DateProperty(required=True)
+    date = ndb.DateProperty(required=True, auto_now_add=True)
     won = ndb.BooleanProperty(required=True)
-    guesses = ndb.IntegerProperty(required=True)
+    attempts = ndb.IntegerProperty(required=True)
 
     def to_form(self):
-        return ScoreForm(user_name=self.user.get().name, won=self.won,
-                         date=str(self.date), guesses=self.guesses)
+        pass
+
+
+class Card(ndb.Model):
+    """Card object"""
+    game = ndb.KeyProperty(required=True, kind='Game')
+    value = ndb.IntegerProperty(required=True)
+    position = ndb.IntegerProperty(required=True)
+    matched = ndb.BooleanProperty(required=True, default=False)
 
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
     urlsafe_key = messages.StringField(1, required=True)
-    attempts_remaining = messages.IntegerField(2, required=True)
+    attempts = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
     message = messages.StringField(4, required=True)
     user_name = messages.StringField(5, required=True)
