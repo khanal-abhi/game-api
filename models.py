@@ -58,7 +58,12 @@ class Score(ndb.Model):
     attempts = ndb.IntegerProperty(required=True)
 
     def to_form(self):
-        pass
+        form = ScoreForm()
+        form.user_name = self.user.get().name
+        form.attempts = self.attempts
+        form.won = self.won
+        form.date = self.date
+        return form
 
 
 class Card(ndb.Model):
@@ -81,14 +86,12 @@ class GameForm(messages.Message):
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    min = messages.IntegerField(2, default=1)
-    max = messages.IntegerField(3, default=10)
-    attempts = messages.IntegerField(4, default=5)
 
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
-    guess = messages.IntegerField(1, required=True)
+    a = messages.IntegerField(1, required=True)
+    b = messages.IntegerField(2, required=True)
 
 
 class ScoreForm(messages.Message):
@@ -96,7 +99,7 @@ class ScoreForm(messages.Message):
     user_name = messages.StringField(1, required=True)
     date = messages.StringField(2, required=True)
     won = messages.BooleanField(3, required=True)
-    guesses = messages.IntegerField(4, required=True)
+    attempts = messages.IntegerField(4, required=True)
 
 
 class ScoreForms(messages.Message):
