@@ -1,3 +1,5 @@
 Starting the game design.
 
 1. Create a new branch to start making the changes.
+2. Edit models.py.
+3. Create endpoints for the models.

@@ -11,7 +11,7 @@ from protorpc import messages
 class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
-    email =ndb.StringProperty()
+    email = ndb.StringProperty()
 
 
 class Game(ndb.Model):
@@ -27,6 +27,11 @@ class Game(ndb.Model):
         game = Game(user=user,
                     game_over=False)
         game.put()
+        cards = []
+        for x in xrange(2):
+            for y in xrange(10):
+                cards.append(Card(y))
+
         return game
 
     def to_form(self, message):
