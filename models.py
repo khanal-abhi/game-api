@@ -3,9 +3,9 @@ entities used by the Game. Because these classes are also regular Python
 classes they can include methods (such as 'to_form' and 'new_game')."""
 
 from datetime import date
-
+from datetime import datetime
 from google.appengine.ext import ndb
-from protorpc import messages
+from protorpc import messages, message_types
 
 import random
 
@@ -81,7 +81,7 @@ class Score(ndb.Model):
         form = ScoreForm()
         form.user_name = self.user.get().name
         form.attempts = self.attempts
-        form.date = self.date
+        form.date = datetime.combine(self.date, datetime.min.time())
         return form
 
 
@@ -108,8 +108,7 @@ class MakeMoveForm(messages.Message):
 class ScoreForm(messages.Message):
     """ScoreForm for outbound Score information"""
     user_name = messages.StringField(1, required=True)
-    date = messages.StringField(2, required=True)
-    won = messages.BooleanField(3, required=True)
+    date = message_types.DateTimeField(2, required=True)
     attempts = messages.IntegerField(4, required=True)
 
 

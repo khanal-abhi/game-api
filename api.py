@@ -4,15 +4,14 @@ This can also contain game logic. For more complex games it would be wise to
 move game logic to another file. Ideally the API will be simple, concerned
 primarily with communication to/from the API's users."""
 
-import logging
 import endpoints
-from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
+from protorpc import remote, messages
 
-from models import User, Game, Score, Card
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm, \
     ScoreForms
+from models import User, Game, Score, Card
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -24,7 +23,7 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
 
-MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
+MEMCACHE_MOVES = 'MOVES_REMAINING'
 
 
 @endpoints.api(name='guess_a_number', version='v1')
@@ -163,24 +162,24 @@ class ConcentrationAPI(remote.Service):
 
     @endpoints.method(response_message=StringMessage,
                       path='games/average_attempts',
-                      name='get_average_attempts_remaining',
+                      name='get_average_attempts',
                       http_method='GET')
     def get_average_attempts(self, request):
-        """Get the cached average moves remaining"""
+        """Get the cached average moves"""
         return StringMessage(
-            message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
+            message=memcache.get(MEMCACHE_MOVES) or '')
 
     @staticmethod
     def _cache_average_attempts():
-        """Populates memcache with the average moves remaining of Games"""
-        games = Game.query(Game.game_over == False).fetch()
+        """Populates memcache with the average moves of Games"""
+        games = Game.query(Game.game_over == True).fetch()
         if games:
             count = len(games)
-            total_attempts_remaining = sum([game.attempts_remaining
+            total_attempts = sum([game.attempts_remaining
                                             for game in games])
-            average = float(total_attempts_remaining) / count
-            memcache.set(MEMCACHE_MOVES_REMAINING,
-                         'The average moves remaining is {:.2f}'.format(
+            average = float(total_attempts) / count
+            memcache.set(MEMCACHE_MOVES,
+                         'The average moves is {:.2f}'.format(
                              average))
 
 
