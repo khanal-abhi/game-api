@@ -188,14 +188,12 @@ class ConcentrationAPI(remote.Service):
         if user is None:
             return GameForms(games=[])
 
-        games = Game.query(Game.user == user.key)
+        games = Game.query(Game.user == user.key, Game.game_over == False)
         games_list = []
         for game in games:
             games_list.append(game.to_form('A game of concentration!'))
 
         return GameForms(games=games_list)
-
-
 
     @staticmethod
     def _cache_average_attempts():
