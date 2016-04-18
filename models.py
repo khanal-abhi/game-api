@@ -36,7 +36,7 @@ class Game(ndb.Model):
         """Creates and returns a new game"""
         game = Game(user=user,
                     game_over=False)
-        game.put()
+        game_key = game.put()
         cards = []
         for x in xrange(2):
             for y in xrange(10):
@@ -45,7 +45,7 @@ class Game(ndb.Model):
         random.shuffle(cards)
         for card in cards:
             card.position = cards.index(card)
-            card.game = game
+            card.game = game_key
             card.put()
 
         return game
