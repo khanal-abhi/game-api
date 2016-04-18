@@ -172,6 +172,31 @@ class ConcentrationAPI(remote.Service):
         return StringMessage(
             message=memcache.get(MEMCACHE_MOVES) or '')
 
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=GameForms,
+                      path='games/get_user_games',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        user_name = request.user_name
+        users = User.query(User.name == user_name)
+        user = None
+        for one_user in users:
+            user = one_user
+            break
+
+        if user is None:
+            return GameForms(games=[])
+
+        games = Game.query(Game.user == user.key)
+        games_list = []
+        for game in games:
+            games_list.append(game.to_form('A game of concentration!'))
+
+        return GameForms(games=games_list)
+
+
+
     @staticmethod
     def _cache_average_attempts():
         """Populates memcache with the average moves of Games"""
@@ -179,19 +204,11 @@ class ConcentrationAPI(remote.Service):
         if games:
             count = len(games)
             total_attempts = sum([game.attempts_remaining
-                                            for game in games])
+                                  for game in games])
             average = float(total_attempts) / count
             memcache.set(MEMCACHE_MOVES,
                          'The average moves is {:.2f}'.format(
                              average))
-
-    @endpoints.method(response_message=GET_USER_GAMES_REQUEST,
-                      response_message=GameForms,
-                      path='games/get_user_games',
-                      name='get_user_games',
-                      http_method='GET')
-    def get_user_games(self, request):
-        pass
 
 
 api = endpoints.api_server([ConcentrationAPI])
