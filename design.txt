@@ -1,7 +1,29 @@
 Starting the game design.
 
-1. Create a new branch to start making the changes.
-2. Edit models.py.
-3. Create endpoints for the models.
-4. Create a shell script to start chrome on osx with the safety off for api
-testing.
+1. Plan the game. What I did in this step is to visualize the game. The game
+ that I will be working on is Concentration. The game will have 20 cards, 10
+  pairs or matching cards. Each card will be associated with a unique game
+  and by tracking which cards have been matched based on their position and
+  value, the game may progress. Each attempt a user makes will increment the
+   attempts which is recorded for scoring purposes.
+
+2. Design the game. Edited the models to reflect this. The endpoints
+skeleton was already provided. Rather than re-invent the wheel, I edited the
+ models such that each model and form conformed to my game instead of the
+ default game.
+
+ Game model and form contained a user, the number of attempts and whether or
+  not the game was over.
+
+ User model and form reflected a user, with a unique username and optional
+ email that may be associated with multiple games.
+
+ Card model and form reflected a Card, which belonged to a game. It has a
+ value that is used to find a match and a position that reflects its
+ position in the game as well a matched flag for sorting the matched cards
+ against the unmatched ones.
+
+ Score model and form that can be used to see the scores (the number of
+ attempts needed to solve the game) as well as the date it was completed.
+
+3. Test the game. Tested the game using the endpoints api explorer.
