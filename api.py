@@ -7,10 +7,10 @@ primarily with communication to/from the API's users."""
 import endpoints
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
-from protorpc import remote, messages
+from protorpc import remote, messages, message_types
 
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm, \
-    ScoreForms, GameForms
+    ScoreForms, GameForms, RankingForm, RankingForms
 from models import User, Game, Score, Card
 from utils import get_by_urlsafe
 
@@ -238,7 +238,7 @@ class ConcentrationAPI(remote.Service):
 
         if limit is not None:
             for score in scores:
-                scores_list.append(score)
+                scores_list.append(score.to_form())
 
         else:
             for score in scores:
@@ -248,6 +248,37 @@ class ConcentrationAPI(remote.Service):
                     break
 
         return ScoreForms(items=scores_list)
+
+    @endpoints.method(message_types.VoidMessage,
+                      response_message=RankingForms,
+                      path='games/get_user_rankings',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """Get user rankings"""
+        users = User.query()
+        attempts_count = 0
+        attempts_total = 0
+        rankings = []
+
+        for user in users:
+            scores = Score.query(Score.user == user.key)
+            for score in scores:
+                attempts_total += score.attempts
+                attempts_count += 1.0
+
+            if attempts_count != 0:
+                average_attempts = attempts_total / attempts_count
+            else:
+                average_attempts = attempts_total / 1.0
+
+            rankings.append(RankingForm(user_name=user.name,
+                                        average_attempts=average_attempts))
+
+            attempts_total = 0
+            attempts_count = 0
+
+        return RankingForms(items=rankings)
 
     @staticmethod
     def _cache_average_attempts():

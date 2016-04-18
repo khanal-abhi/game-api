@@ -130,3 +130,12 @@ class GameForms(messages.Message):
     games = messages.MessageField(GameForm, 1, repeated=True)
 
 
+class RankingForm(messages.Message):
+    user_name = messages.StringField(1, required=True)
+    average_attempts = messages.FloatField(2, required=True)
+
+
+class RankingForms(messages.Message):
+    items = messages.MessageField(RankingForm, 1, repeated=True)
+
+
