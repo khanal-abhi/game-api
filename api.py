@@ -10,7 +10,7 @@ from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 
-from models import User, Game, Score
+from models import User, Game, Score, Card
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm, \
     ScoreForms
 from utils import get_by_urlsafe
@@ -88,27 +88,33 @@ class ConcentrationAPI(remote.Service):
                       name='make_move',
                       http_method='PUT')
     def make_move(self, request):
-        """Makes a move. Returns a game state with message"""
+        """Makes a move. Returns a game state with message. The two
+        positions are a and b"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game.game_over:
             return game.to_form('Game already over!')
 
-        game.attempts_remaining -= 1
-        if request.guess == game.target:
-            game.end_game(True)
-            return game.to_form('You win!')
+        game.attempts += 1
+        cards = Card.query(Game.key == game.key)
+        position1 = request.a
+        position2 = request.b
+        cards_list = []
 
-        if request.guess < game.target:
-            msg = 'Too low!'
-        else:
-            msg = 'Too high!'
+        for card in cards:
+            cards_list.append(card)
 
-        if game.attempts_remaining < 1:
-            game.end_game(False)
-            return game.to_form(msg + ' Game over!')
+        if cards_list[position1].value == cards_list[position2].value:
+            msg = 'Hoorah'
+            cards_list[position1].matched = cards_list[position2].value.matched \
+            = True
+            cards_list[position1].put()
+            cards_list[position2].put()
         else:
-            game.put()
-            return game.to_form(msg)
+            msg = 'Boo'
+
+        game.put()
+
+        return game.to_form(msg)
 
     @endpoints.method(response_message=ScoreForms,
                       path='scores',
