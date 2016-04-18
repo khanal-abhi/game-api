@@ -96,6 +96,9 @@ given time. Each game can be retrieved or played by using the path parameter
  - **Card**
     - Records the value and position of each cards along with its state of 
     having been matched or not.
+    
+ - **Move**
+    - Records each of the move related to the game.
  
 ##Forms Included:
  - **GameForm**
@@ -111,3 +114,7 @@ given time. Each game can be retrieved or played by using the path parameter
     - Multiple ScoreForm container.
  - **StringMessage**
     - General purpose String container.
+ - **MoveForm**
+    - Displays a single move from the game
+ - **MoveForms**
+    - Displays all the moves from the game

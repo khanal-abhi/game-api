@@ -2,13 +2,12 @@
 
 """main.py - This file contains handlers that are called by taskqueue and/or
 cronjobs."""
-import logging
 
 import webapp2
 from google.appengine.api import mail, app_identity
-from api import ConcentrationAPI
 
-from models import User
+from api import ConcentrationAPI
+from models import Game
 
 
 class SendReminderEmail(webapp2.RequestHandler):
@@ -16,8 +15,12 @@ class SendReminderEmail(webapp2.RequestHandler):
         """Send a reminder email to each User with an email about games.
         Called every hour using a cron job"""
         app_id = app_identity.get_application_id()
-        users = User.query(User.email != None)
-        for user in users:
+
+        incomplete_games = Game.query(Game.active == True, Game.game_over ==
+                                      False)
+
+        for game in incomplete_games:
+            user = game.user
             subject = 'This is a reminder!'
             body = 'Hello {}, try out Guess A Number!'.format(user.name)
             # This will send test emails, the arguments to send_mail are:
