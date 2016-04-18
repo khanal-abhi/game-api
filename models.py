@@ -60,13 +60,13 @@ class Game(ndb.Model):
         form.message = message
         return form
 
-    def end_game(self, won=False):
+    def end_game(self):
         """Ends the game - if won is True, the player won. - if won is False,
         the player lost."""
         self.game_over = True
         self.put()
         # Add the game to the score 'board'
-        score = Score(user=self.user, date=date.today(), won=won,
+        score = Score(user=self.user, date=date.today(),
                       attempts=self.attempts)
         score.put()
 
@@ -75,18 +75,14 @@ class Score(ndb.Model):
     """Score object"""
     user = ndb.KeyProperty(required=True, kind='User')
     date = ndb.DateProperty(required=True, auto_now_add=True)
-    won = ndb.BooleanProperty(required=True)
     attempts = ndb.IntegerProperty(required=True)
 
     def to_form(self):
         form = ScoreForm()
         form.user_name = self.user.get().name
         form.attempts = self.attempts
-        form.won = self.won
         form.date = self.date
         return form
-
-
 
 
 class GameForm(messages.Message):

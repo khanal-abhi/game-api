@@ -103,18 +103,26 @@ class ConcentrationAPI(remote.Service):
             unmatched_cards.append(card)
 
         unmatched_cards_count = len(unmatched_cards)
+        if unmatched_cards_count < 2:
+            raise IndexError('No unmatched pair found but the game is not '
+                             'over')
 
         cards_list = []
         msg = 'Boo'
 
         game.attempts += 1
 
-        for card in cards:
+        for card in unmatched_cards:
             if card.position == position1 or card.position == position2:
                 cards_list.append(card)
 
-        if cards_list[0].matched or cards_list[1].matched:
-            return game.to_form('Card already matched')
+        try:
+            if cards_list[0].matched or cards_list[1].matched:
+                return game.to_form('Card already matched')
+
+        except:
+            msg = 'One of the cards is already matched. Please Try again.'
+            return game.to_form(msg)
 
         if cards_list[0].value == cards_list[1].value:
             cards_list[0].matched = cards_list[1].matched = True
@@ -123,7 +131,9 @@ class ConcentrationAPI(remote.Service):
             msg = 'Yay'
             if unmatched_cards_count == 2:
                 game.game_over = True
+                game.end_game()
                 msg = 'You win, Game Over'
+                return game.to_form(msg)
 
         game.put()
 
