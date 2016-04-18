@@ -299,6 +299,8 @@ class ConcentrationAPI(remote.Service):
     @staticmethod
     def _cache_average_attempts():
         """Populates memcache with the average moves of Games"""
+
+        # Get all the games that are not completed as well as are active
         games = Game.query(Game.game_over == True).fetch()
         if games:
             count = len(games)
