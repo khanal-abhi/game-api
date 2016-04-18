@@ -26,6 +26,9 @@ USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
 GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
     urlsafe_user_key=messages.StringField(1))
 
+GET_HIGH_SCORES = endpoints.ResourceContainer(
+    number_of_results=messages.StringField(1))
+
 MEMCACHE_MOVES = 'MOVES_REMAINING'
 
 
@@ -178,6 +181,7 @@ class ConcentrationAPI(remote.Service):
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
+        """Get all active games for a given user."""
         user_name = request.user_name
         users = User.query(User.name == user_name)
         user = None
@@ -200,7 +204,7 @@ class ConcentrationAPI(remote.Service):
                       response_message=GameForm,
                       path='games/cancel_game',
                       name='cancel_game',
-                      http_method='DELETE')
+                      http_method='GET')
     def cancel_game(self, request):
         """Cancels a game in progress"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -217,6 +221,33 @@ class ConcentrationAPI(remote.Service):
                     msg = 'Game cancelled'
 
         return game.to_form(msg)
+
+    @endpoints.method(request_message=GET_HIGH_SCORES,
+                      response_message=ScoreForms,
+                      path='games/get_high_scores',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """Get the high scores with an option of a limit"""
+        limit = request.number_of_results
+
+        scores = Score.query().order(-Score.attempts)
+        scores_list = []
+
+        counter = 0
+
+        if limit is not None:
+            for score in scores:
+                scores_list.append(score)
+
+        else:
+            for score in scores:
+                scores_list.append(score.to_form())
+                counter += 1
+                if counter >= limit:
+                    break
+
+        return ScoreForms(items=scores_list)
 
     @staticmethod
     def _cache_average_attempts():

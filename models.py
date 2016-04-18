@@ -124,6 +124,9 @@ class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
     message = messages.StringField(1, required=True)
 
+
 class GameForms(messages.Message):
     """Return multiple GameForms"""
     games = messages.MessageField(GameForm, 1, repeated=True)
+
+
