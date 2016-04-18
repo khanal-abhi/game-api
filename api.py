@@ -94,23 +94,36 @@ class ConcentrationAPI(remote.Service):
         if game.game_over:
             return game.to_form('Game already over!')
 
-        game.attempts += 1
-        cards = Card.query(Game.key == game.key)
+        cards = Card.query(Card.game == game.key, Card.matched == False)
         position1 = request.a
         position2 = request.b
+
+        unmatched_cards = []
+        for card in cards:
+            unmatched_cards.append(card)
+
+        unmatched_cards_count = len(unmatched_cards)
+
         cards_list = []
+        msg = 'Boo'
+
+        game.attempts += 1
 
         for card in cards:
-            cards_list.append(card)
+            if card.position == position1 or card.position == position2:
+                cards_list.append(card)
 
-        if cards_list[position1].value == cards_list[position2].value:
-            msg = 'Hoorah'
-            cards_list[position1].matched = cards_list[position2].value.matched \
-            = True
-            cards_list[position1].put()
-            cards_list[position2].put()
-        else:
-            msg = 'Boo'
+        if cards_list[0].matched or cards_list[1].matched:
+            return game.to_form('Card already matched')
+
+        if cards_list[0].value == cards_list[1].value:
+            cards_list[0].matched = cards_list[1].matched = True
+            cards_list[0].put()
+            cards_list[1].put()
+            msg = 'Yay'
+            if unmatched_cards_count == 2:
+                game.game_over = True
+                msg = 'You win, Game Over'
 
         game.put()
 
