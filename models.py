@@ -24,6 +24,24 @@ class Card(ndb.Model):
     matched = ndb.BooleanProperty(required=True, default=False)
 
 
+class Move(ndb.Model):
+    """Move object with card1, card2, result, move_time, game"""
+    card1 = ndb.IntegerProperty(required=True)
+    card2 = ndb.IntegerProperty(required=True)
+    result = ndb.StringProperty(required=True)
+    move_time = ndb.DateTimeProperty(required=True, auto_now_add=True)
+    game = ndb.KeyProperty(required=True, kind='Game')
+
+    def to_form(self):
+        form = MoveForm()
+        form.card1 = self.card1
+        form.card2 = self.card2
+        form.result = self.result
+        form.move_time = self.move_time
+        form.game_key = self.game
+        return form
+
+
 class Game(ndb.Model):
     """Game object"""
     attempts = ndb.IntegerProperty(required=True, default=0)
@@ -131,11 +149,25 @@ class GameForms(messages.Message):
 
 
 class RankingForm(messages.Message):
+    """Return a Ranking"""
     user_name = messages.StringField(1, required=True)
     average_attempts = messages.FloatField(2, required=True)
 
 
 class RankingForms(messages.Message):
+    """Return all the rankings"""
     items = messages.MessageField(RankingForm, 1, repeated=True)
 
 
+class MoveForm(messages.Message):
+    """Return a Move"""
+    card1 = messages.IntegerField(1, required=True)
+    card2 = messages.IntegerField(2, required=True)
+    result = messages.StringField(3, required=True)
+    move_time = message_types.DateTimeField(4, required=True)
+    game_key = messages.StringField(5, required=True)
+
+
+class MoveForms(messages.Message):
+    """Return all the moves for a game"""
+    items = messages.MessageField(MoveForm, 1, repeated=True)

@@ -10,7 +10,7 @@ from google.appengine.api import taskqueue
 from protorpc import remote, messages, message_types
 
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm, \
-    ScoreForms, GameForms, RankingForm, RankingForms
+    ScoreForms, GameForms, RankingForm, RankingForms, MoveForms, Move
 from models import User, Game, Score, Card
 from utils import get_by_urlsafe
 
@@ -279,6 +279,22 @@ class ConcentrationAPI(remote.Service):
             attempts_count = 0
 
         return RankingForms(items=rankings)
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=MoveForms,
+                      path='games/get_game_history',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """get moves history for each game requested"""
+        url_safe_key = request.urlsafe_game_key
+        game = get_by_urlsafe(url_safe_key, Game)
+        moves = Move.query(Move.game == game.key)
+        moves_list = []
+        for move in moves:
+            moves_list.append(move.to_form())
+
+        return MoveForms(items=moves_list)
 
     @staticmethod
     def _cache_average_attempts():
