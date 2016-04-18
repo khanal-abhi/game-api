@@ -7,11 +7,21 @@ from datetime import date
 from google.appengine.ext import ndb
 from protorpc import messages
 
+import random
+
 
 class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
+
+
+class Card(ndb.Model):
+    """Card object"""
+    game = ndb.KeyProperty(required=True, kind='Game')
+    value = ndb.IntegerProperty(required=True)
+    position = ndb.IntegerProperty(required=True)
+    matched = ndb.BooleanProperty(required=True, default=False)
 
 
 class Game(ndb.Model):
@@ -30,7 +40,13 @@ class Game(ndb.Model):
         cards = []
         for x in xrange(2):
             for y in xrange(10):
-                cards.append(Card(y))
+                cards.append(Card(value=y))
+
+        random.shuffle(cards)
+        for card in cards:
+            card.position = cards.index(card)
+            card.game = game
+            card.put()
 
         return game
 
@@ -71,12 +87,6 @@ class Score(ndb.Model):
         return form
 
 
-class Card(ndb.Model):
-    """Card object"""
-    game = ndb.KeyProperty(required=True, kind='Game')
-    value = ndb.IntegerProperty(required=True)
-    position = ndb.IntegerProperty(required=True)
-    matched = ndb.BooleanProperty(required=True, default=False)
 
 
 class GameForm(messages.Message):

@@ -28,7 +28,7 @@ MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
 
 @endpoints.api(name='guess_a_number', version='v1')
-class GuessANumberApi(remote.Service):
+class ConcentrationAPI(remote.Service):
     """Game API"""
 
     @endpoints.method(request_message=USER_REQUEST,
@@ -155,4 +155,4 @@ class GuessANumberApi(remote.Service):
                              average))
 
 
-api = endpoints.api_server([GuessANumberApi])
+api = endpoints.api_server([ConcentrationAPI])
