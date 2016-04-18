@@ -188,12 +188,35 @@ class ConcentrationAPI(remote.Service):
         if user is None:
             return GameForms(games=[])
 
-        games = Game.query(Game.user == user.key, Game.game_over == False)
+        games = Game.query(Game.user == user.key, Game.game_over == False,
+                           Game.active == True)
         games_list = []
         for game in games:
             games_list.append(game.to_form('A game of concentration!'))
 
         return GameForms(games=games_list)
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameForm,
+                      path='games/cancel_game',
+                      name='cancel_game',
+                      http_method='DELETE')
+    def cancel_game(self, request):
+        """Cancels a game in progress"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        msg = 'Game cancelled'
+        if game is not None:
+            if game.active is False:
+                msg = 'Game already cancelled'
+            else:
+                if game.game_over is True:
+                    msg = 'Cannot cancel a completed game'
+                else:
+                    game.active = False
+                    game.put()
+                    msg = 'Game cancelled'
+
+        return game.to_form(msg)
 
     @staticmethod
     def _cache_average_attempts():

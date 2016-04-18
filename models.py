@@ -28,6 +28,7 @@ class Game(ndb.Model):
     """Game object"""
     attempts = ndb.IntegerProperty(required=True, default=0)
     game_over = ndb.BooleanProperty(required=True, default=False)
+    active = ndb.BooleanProperty(required=True, default=True)
     last_played = ndb.DateTimeProperty(auto_now_add=True)
     user = ndb.KeyProperty(required=True, kind='User')
 
@@ -57,6 +58,7 @@ class Game(ndb.Model):
         form.user_name = self.user.get().name
         form.attempts = self.attempts
         form.game_over = self.game_over
+        form.active = self.active
         form.message = message
         return form
 
@@ -90,8 +92,9 @@ class GameForm(messages.Message):
     urlsafe_key = messages.StringField(1, required=True)
     attempts = messages.IntegerField(2, required=True)
     game_over = messages.BooleanField(3, required=True)
-    message = messages.StringField(4, required=True)
-    user_name = messages.StringField(5, required=True)
+    active = messages.BooleanField(4, required=True)
+    message = messages.StringField(5, required=True)
+    user_name = messages.StringField(6, required=True)
 
 
 class NewGameForm(messages.Message):
