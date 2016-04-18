@@ -10,7 +10,7 @@ from google.appengine.api import taskqueue
 from protorpc import remote, messages
 
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm, \
-    ScoreForms
+    ScoreForms, GameForms
 from models import User, Game, Score, Card
 from utils import get_by_urlsafe
 
@@ -22,6 +22,9 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1), )
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
+
+GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
+    urlsafe_user_key=messages.StringField(1))
 
 MEMCACHE_MOVES = 'MOVES_REMAINING'
 
@@ -181,6 +184,14 @@ class ConcentrationAPI(remote.Service):
             memcache.set(MEMCACHE_MOVES,
                          'The average moves is {:.2f}'.format(
                              average))
+
+    @endpoints.method(response_message=GET_USER_GAMES_REQUEST,
+                      response_message=GameForms,
+                      path='games/get_user_games',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        pass
 
 
 api = endpoints.api_server([ConcentrationAPI])
