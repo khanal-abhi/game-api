@@ -32,7 +32,7 @@ GET_HIGH_SCORES = endpoints.ResourceContainer(
 MEMCACHE_MOVES = 'MOVES_REMAINING'
 
 
-@endpoints.api(name='guess_a_number', version='v1')
+@endpoints.api(name='concentration_game', version='v1')
 class ConcentrationAPI(remote.Service):
     """Game API"""
 
