@@ -94,9 +94,9 @@ class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
-    games_played = ndb.IntegerProperty()
-    total_attempts = ndb.IntegerProperty()
-    average_score = ndb.FloatProperty()
+    games_played = ndb.IntegerProperty(default=0)
+    total_attempts = ndb.IntegerProperty(default=0)
+    average_score = ndb.FloatProperty(default=0.0)
 
     def calculate_score(self):
         self.average_score = 1.0 * (self.total_attempts / self.games_played)

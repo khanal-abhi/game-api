@@ -138,7 +138,7 @@ class ConcentrationAPI(remote.Service):
 
         try:
             if cards_list[0].matched or cards_list[1].matched:
-                move.result = 'Card alreadt matched'
+                move.result = 'Card already matched'
                 move.put()
                 return game.to_form('Card already matched')
 
@@ -159,11 +159,12 @@ class ConcentrationAPI(remote.Service):
                 game.end_game()
                 msg = 'You win, Game Over'
                 move.put()
-                user = User.query(User.key == game.user)
-                user.games_played += 1
-                user.average_attempt = game.attempts
-                user.calculate_score()
-                user.put()
+                users = User.query(User.key == game.user)
+                for user in users:
+                    user.games_played += 1
+                    user.average_attempt = game.attempts
+                    user.calculate_score()
+                    user.put()
                 return game.to_form(msg)
 
         game.put()
