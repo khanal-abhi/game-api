@@ -216,7 +216,7 @@ class ConcentrationAPI(remote.Service):
                       response_message=GameForm,
                       path='games/cancel_game',
                       name='cancel_game',
-                      http_method='GET')
+                      http_method='PUT')
     def cancel_game(self, request):
         """Cancels a game in progress"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -248,16 +248,8 @@ class ConcentrationAPI(remote.Service):
 
         counter = 0
 
-        if limit is not None:
-            for score in scores:
-                scores_list.append(score.to_form())
-
-        else:
-            for score in scores:
-                scores_list.append(score.to_form())
-                counter += 1
-                if counter >= limit:
-                    break
+        for i in range(limit or len(scores)):
+            scores_list.append(scores[i].to_form())
 
         return ScoreForms(items=scores_list)
 
