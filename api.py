@@ -103,6 +103,16 @@ class ConcentrationAPI(remote.Service):
         position1 = request.a
         position2 = request.b
 
+        mark_card = Card.query(Card.position == position1)
+        for card in mark_card:
+            card.seen = True
+            card.put()
+
+        mark_card = Card.query(Card.position == position2)
+        for card in mark_card:
+            card.seen = True
+            card.put()
+
         unmatched_cards = []
         for card in cards:
             unmatched_cards.append(card)
@@ -116,6 +126,11 @@ class ConcentrationAPI(remote.Service):
         msg = 'Boo'
 
         game.attempts += 1
+        move = Move()
+        move.card1 = position1
+        move.card2 = position2
+        move.game = game.key
+        move.result = msg
 
         for card in unmatched_cards:
             if card.position == position1 or card.position == position2:
@@ -123,10 +138,14 @@ class ConcentrationAPI(remote.Service):
 
         try:
             if cards_list[0].matched or cards_list[1].matched:
+                move.result = 'Card already matched'
+                move.put()
                 return game.to_form('Card already matched')
 
         except:
             msg = 'One of the cards is already matched. Please Try again.'
+            move.result = msg
+            move.put()
             return game.to_form(msg)
 
         if cards_list[0].value == cards_list[1].value:
@@ -134,14 +153,23 @@ class ConcentrationAPI(remote.Service):
             cards_list[0].put()
             cards_list[1].put()
             msg = 'Yay'
+            move.result = msg
             if unmatched_cards_count == 2:
                 game.game_over = True
                 game.end_game()
                 msg = 'You win, Game Over'
+                move.put()
+                users = User.query(User.key == game.user)
+                for user in users:
+                    user.games_played += 1
+                    user.average_attempt = game.attempts
+                    user.calculate_score()
+                    user.put()
                 return game.to_form(msg)
 
         game.put()
 
+        move.put()
         return game.to_form(msg)
 
     @endpoints.method(response_message=ScoreForms,
@@ -204,7 +232,7 @@ class ConcentrationAPI(remote.Service):
                       response_message=GameForm,
                       path='games/cancel_game',
                       name='cancel_game',
-                      http_method='GET')
+                      http_method='PUT')
     def cancel_game(self, request):
         """Cancels a game in progress"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -233,21 +261,15 @@ class ConcentrationAPI(remote.Service):
 
         scores = Score.query().order(-Score.attempts)
         scores_list = []
+        scores_list_result = []
 
-        counter = 0
+        for score in scores:
+            scores_list.append(score)
 
-        if limit is not None:
-            for score in scores:
-                scores_list.append(score.to_form())
+        for i in range(limit or len(scores_list)):
+            scores_list_result.append(scores_list[i].to_form())
 
-        else:
-            for score in scores:
-                scores_list.append(score.to_form())
-                counter += 1
-                if counter >= limit:
-                    break
-
-        return ScoreForms(items=scores_list)
+        return ScoreForms(items=scores_list_result)
 
     @endpoints.method(message_types.VoidMessage,
                       response_message=RankingForms,
@@ -256,27 +278,12 @@ class ConcentrationAPI(remote.Service):
                       http_method='GET')
     def get_user_rankings(self, request):
         """Get user rankings"""
-        users = User.query()
-        attempts_count = 0
-        attempts_total = 0
+        users = User.query().order(User.average_score)
         rankings = []
 
         for user in users:
-            scores = Score.query(Score.user == user.key)
-            for score in scores:
-                attempts_total += score.attempts
-                attempts_count += 1.0
-
-            if attempts_count != 0:
-                average_attempts = attempts_total / attempts_count
-            else:
-                average_attempts = attempts_total / 1.0
-
             rankings.append(RankingForm(user_name=user.name,
-                                        average_attempts=average_attempts))
-
-            attempts_total = 0
-            attempts_count = 0
+                                        average_attempts=user.average_score))
 
         return RankingForms(items=rankings)
 
