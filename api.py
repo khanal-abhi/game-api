@@ -261,11 +261,15 @@ class ConcentrationAPI(remote.Service):
 
         scores = Score.query().order(-Score.attempts)
         scores_list = []
+        scores_list_result = []
 
-        for i in range(limit or len(scores)):
-            scores_list.append(scores[i].to_form())
+        for score in scores:
+            scores_list.append(score)
 
-        return ScoreForms(items=scores_list)
+        for i in range(limit or len(scores_list)):
+            scores_list_result.append(scores_list[i].to_form())
+
+        return ScoreForms(items=scores_list_result)
 
     @endpoints.method(message_types.VoidMessage,
                       response_message=RankingForms,
@@ -274,12 +278,12 @@ class ConcentrationAPI(remote.Service):
                       http_method='GET')
     def get_user_rankings(self, request):
         """Get user rankings"""
-        users = User.query().order(-User.average_score)
+        users = User.query().order(User.average_score)
         rankings = []
 
         for user in users:
             rankings.append(RankingForm(user_name=user.name,
-                                        average_attempts=user.average_scores))
+                                        average_attempts=user.average_score))
 
         return RankingForms(items=rankings)
 
