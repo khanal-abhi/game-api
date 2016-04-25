@@ -116,6 +116,11 @@ class ConcentrationAPI(remote.Service):
         msg = 'Boo'
 
         game.attempts += 1
+        move = Move()
+        move.card1 = position1
+        move.card2 = position2
+        move.game = game.key
+        move.result = msg
 
         for card in unmatched_cards:
             if card.position == position1 or card.position == position2:
@@ -123,10 +128,14 @@ class ConcentrationAPI(remote.Service):
 
         try:
             if cards_list[0].matched or cards_list[1].matched:
+                move.result = 'Card alreadt matched'
+                move.put()
                 return game.to_form('Card already matched')
 
         except:
             msg = 'One of the cards is already matched. Please Try again.'
+            move.result = msg
+            move.put()
             return game.to_form(msg)
 
         if cards_list[0].value == cards_list[1].value:
@@ -134,14 +143,17 @@ class ConcentrationAPI(remote.Service):
             cards_list[0].put()
             cards_list[1].put()
             msg = 'Yay'
+            move.result = msg
             if unmatched_cards_count == 2:
                 game.game_over = True
                 game.end_game()
                 msg = 'You win, Game Over'
+                move.put()
                 return game.to_form(msg)
 
         game.put()
 
+        move.put()
         return game.to_form(msg)
 
     @endpoints.method(response_message=ScoreForms,

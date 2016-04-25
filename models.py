@@ -127,7 +127,7 @@ class Move(ndb.Model):
         form.card2 = self.card2
         form.result = self.result
         form.move_time = self.move_time
-        form.game_key = self.game
+        form.game_key = self.game.urlsafe()
         return form
 
 
