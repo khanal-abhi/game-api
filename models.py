@@ -12,8 +12,9 @@ import random
 
 class CardForm(messages.Message):
     position = messages.IntegerField(1, required=True)
-    value = messages.IntegerField(2, required=True)
+    value = messages.IntegerField(2)
     matched = messages.BooleanField(3, required=True)
+    seen = messages.BooleanField(4, required=True)
 
 
 class BoardForm(messages.Message):
@@ -93,6 +94,12 @@ class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
+    games_played = ndb.IntegerProperty()
+    total_attempts = ndb.IntegerProperty()
+    average_score = ndb.FloatProperty()
+
+    def calculate_score(self):
+        self.average_score = 1.0 * (self.total_attempts / self.games_played)
 
 
 class Card(ndb.Model):
@@ -101,14 +108,14 @@ class Card(ndb.Model):
     value = ndb.IntegerProperty(required=True)
     position = ndb.IntegerProperty(required=True)
     matched = ndb.BooleanProperty(required=True, default=False)
+    seen = ndb.BooleanProperty(required=True, default=False)
 
     def to_form(self):
         form = CardForm()
         form.position = self.position
-        if self.matched:
+        form.seen = self.seen
+        if self.seen:
             form.value = self.value
-        else:
-            form.value = 99
         form.matched = self.matched
         return form
 

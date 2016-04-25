@@ -103,6 +103,16 @@ class ConcentrationAPI(remote.Service):
         position1 = request.a
         position2 = request.b
 
+        mark_card = Card.query(Card.position == position1)
+        for card in mark_card:
+            card.seen = True
+            card.put()
+
+        mark_card = Card.query(Card.position == position2)
+        for card in mark_card:
+            card.seen = True
+            card.put()
+
         unmatched_cards = []
         for card in cards:
             unmatched_cards.append(card)
@@ -149,6 +159,11 @@ class ConcentrationAPI(remote.Service):
                 game.end_game()
                 msg = 'You win, Game Over'
                 move.put()
+                user = User.query(User.key == game.user)
+                user.games_played += 1
+                user.average_attempt = game.attempts
+                user.calculate_score()
+                user.put()
                 return game.to_form(msg)
 
         game.put()
@@ -246,8 +261,6 @@ class ConcentrationAPI(remote.Service):
         scores = Score.query().order(-Score.attempts)
         scores_list = []
 
-        counter = 0
-
         for i in range(limit or len(scores)):
             scores_list.append(scores[i].to_form())
 
@@ -260,27 +273,12 @@ class ConcentrationAPI(remote.Service):
                       http_method='GET')
     def get_user_rankings(self, request):
         """Get user rankings"""
-        users = User.query()
-        attempts_count = 0
-        attempts_total = 0
+        users = User.query().order(-User.average_score)
         rankings = []
 
         for user in users:
-            scores = Score.query(Score.user == user.key)
-            for score in scores:
-                attempts_total += score.attempts
-                attempts_count += 1.0
-
-            if attempts_count != 0:
-                average_attempts = attempts_total / attempts_count
-            else:
-                average_attempts = attempts_total / 1.0
-
             rankings.append(RankingForm(user_name=user.name,
-                                        average_attempts=average_attempts))
-
-            attempts_total = 0
-            attempts_count = 0
+                                        average_attempts=user.average_scores))
 
         return RankingForms(items=rankings)
 
